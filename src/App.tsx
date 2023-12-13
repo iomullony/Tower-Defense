@@ -15,10 +15,18 @@ function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null); // Add HTMLCanvasElement type
 
   const handleTowerSelection = (value: React.SetStateAction<string | null>) => {
+    if (!gameStarted) {
+      alert('Please start the game first!');
+      return;
+    }
     setSelectedTower(value);
   };
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!gameStarted) {
+      alert('Please start the game first!');
+      return;
+    }
     const canvas = event.currentTarget;
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -41,6 +49,10 @@ function App() {
       alert('Not enough gold or tower not selected to build a tower!');
     }
   };
+  
+  const startStopGame = () => {
+    setGameStarted((prevGameStarted) => !prevGameStarted);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -62,7 +74,7 @@ function App() {
       // Start the drawing loop
       draw();
     }
-  }, [towers]);
+  }, [towers, canvasRef, fieldSize]);
   
   return (
     <div className="main">
@@ -72,18 +84,21 @@ function App() {
       <p>Selected Tower: {selectedTower}</p>
       <p>Next Wave Frame: {nextWaveFrame}</p>
       <p>Current Level: {currentLevel}</p>
+      <button onClick={startStopGame}>{gameStarted ? 'Stop Game' : 'Start Game'}</button>
 
-      <ToggleButtonGroup type="radio" name="towers" defaultValue={null} onChange={handleTowerSelection}>
-        <ToggleButton value="regular" id={'Regular'}>
-          Regular Tower
-        </ToggleButton>
-        <ToggleButton value="ice" id={'Ice'}>
-          Ice Tower
-        </ToggleButton>
-        <ToggleButton value="fire" id={'Fire'}>
-          Fire Tower
-        </ToggleButton>
-      </ToggleButtonGroup>
+      {gameStarted && (
+        <ToggleButtonGroup type="radio" name="towers" defaultValue={null} onChange={handleTowerSelection}>
+          <ToggleButton value="regular" id={'Regular'}>
+            Regular Tower
+          </ToggleButton>
+          <ToggleButton value="ice" id={'Ice'}>
+            Ice Tower
+          </ToggleButton>
+          <ToggleButton value="fire" id={'Fire'}>
+            Fire Tower
+          </ToggleButton>
+        </ToggleButtonGroup>
+      )}
       <br></br>
       <canvas ref={canvasRef} width={fieldSize * 10} height={fieldSize * 10} onClick={handleCanvasClick}></canvas>
     </div>
