@@ -105,17 +105,21 @@ function App() {
   // Call this function in createMonstersForLevel
   const createMonstersForLevel = (level: number) => {
     const numberOfMonsters = level * 2;
+    const baseMonsterSpeed = 0.5;
+    const delayRange = { min: 600, max: 1000 };
   
-    const createMonsterWithDelay = (index: number) => {
+    const createMonsterWithDelay = (index: number, speed: number) => {
+      console.log(index);
       setTimeout(() => {
         const pathCopy = [...generateMonsterPath];
-        const newMonster = new Monster(pathCopy);
+        const newMonster = new Monster(pathCopy, speed);
         setMonsters((prevMonsters) => [...prevMonsters, newMonster]);
-      }, index * 1000);
+      }, index * (Math.random() * (delayRange.max - delayRange.min) + delayRange.min));
     };
-    
-    for (let i = 0; i < numberOfMonsters; i++) {
-      createMonsterWithDelay(i);
+  
+    for (let i = 1; i <= numberOfMonsters; i++) {
+      const monsterSpeed = baseMonsterSpeed + level * 0.1;
+      createMonsterWithDelay(i, monsterSpeed);
     }
   };
   
@@ -179,7 +183,7 @@ function App() {
       });
 
       monsters.forEach((monster) => {
-        monster.update(100, 0.5);
+        monster.update(100);
       });
 
       monsters.forEach((monster) => {

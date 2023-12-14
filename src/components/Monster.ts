@@ -5,15 +5,17 @@ class Monster {
   displayPosition: { x: number; y: number };
   lives: number;
   path: MonsterPath[];
+  speed: number;
 
-  constructor(path: MonsterPath[]) {
+  constructor(path: MonsterPath[], speed: number) {
     this.position = { ...path[0].position };
     this.displayPosition = { ...path[0].position };
     this.lives = 3; // You can set the initial number of lives as needed
     this.path = path;
+    this.speed = speed;
   }
 
-  update(elapsedTime: number, speed: number = 1) {
+  update(elapsedTime: number) {
     if (this.path.length === 0) {
       // Monster reached the end
       this.lives--; // Deduct a life
@@ -29,8 +31,8 @@ class Monster {
 
       if (nextPos) {
         // Update monster position based on elapsed time and speed
-        this.position.x += (nextPos.x - x) * timeFraction * speed;
-        this.position.y += (nextPos.y - y) * timeFraction * speed;
+        this.position.x += (nextPos.x - x) * timeFraction * this.speed;
+        this.position.y += (nextPos.y - y) * timeFraction * this.speed;
 
         // Check if the monster has reached the next position
         const distance = Math.sqrt(
