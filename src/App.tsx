@@ -86,8 +86,9 @@ function App() {
   };
 
   const startNextLevel = () => {
-    setCurrentLevel((prevLevel) => prevLevel + 1); // Increase the level
-    createMonstersForLevel(currentLevel + 1); // Start the new level
+    setCurrentLevel((prevLevel) => prevLevel + 1);
+    setInitialNextWaveFrame(250); // Set the initial value for nextWaveFrame
+    createMonstersForLevel(currentLevel + 1);
     setNextWaveFrame(250); // Reset the nextWaveFrame
   };
 
