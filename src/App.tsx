@@ -72,10 +72,16 @@ function App() {
       const monsterPath: MonsterPath[] = [
         { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
         { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
-        // Add more positions as needed for a longer path
-        { position: { x: 2, y: 0 }, nextPosition: { x: 2, y: 1 } },
-        { position: { x: 2, y: 1 }, nextPosition: { x: 1, y: 1 } },
-        { position: { x: 1, y: 1 }, nextPosition: null },
+        { position: { x: 2, y: 0 }, nextPosition: { x: 3, y: 0 } },
+        { position: { x: 3, y: 0 }, nextPosition: { x: 4, y: 0 } },
+        { position: { x: 4, y: 0 }, nextPosition: { x: 5, y: 0 } },
+        { position: { x: 5, y: 0 }, nextPosition: { x: 6, y: 0 } },
+        { position: { x: 6, y: 0 }, nextPosition: { x: 6, y: 1 } },
+        { position: { x: 6, y: 1 }, nextPosition: { x: 6, y: 2 } },
+        { position: { x: 6, y: 2 }, nextPosition: { x: 6, y: 3 } },
+        { position: { x: 6, y: 3 }, nextPosition: { x: 6, y: 4 } },
+        { position: { x: 6, y: 4 }, nextPosition: { x: 6, y: 5 } },
+        { position: { x: 6, y: 5 }, nextPosition: null },
       ];
 
       const newMonster = new Monster(monsterPath);
@@ -88,6 +94,7 @@ function App() {
   const startNextLevel = () => {
     setCurrentLevel((prevLevel) => prevLevel + 1);
     setInitialNextWaveFrame(250); // Set the initial value for nextWaveFrame
+    startTime.current = Date.now(); // Update startTime for the new level
     createMonstersForLevel(currentLevel + 1);
     setNextWaveFrame(250); // Reset the nextWaveFrame
   };
