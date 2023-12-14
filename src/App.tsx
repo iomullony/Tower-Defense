@@ -15,6 +15,8 @@ function App() {
   const [currentLevel, setCurrentLevel] = useState(1);
   const [towers, setTowers] = useState<Tower[]>([]); // Array of towers
   const [monsters, setMonsters] = useState<Monster[]>([]);
+  const startTime = useRef<number>(0);
+  const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(250);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -55,6 +57,10 @@ function App() {
   };
   
   const startStopGame = () => {
+    if (!gameStarted) {
+      setInitialNextWaveFrame(nextWaveFrame); // Store the initial value when the game starts
+      startTime.current = Date.now();
+    }
     setGameStarted((prevGameStarted) => !prevGameStarted);
   };
   
@@ -86,10 +92,12 @@ function App() {
   };
 
   useEffect(() => {
+    // console.log('Component is mounted and rendered.');
     const canvas = canvasRef.current!;
-    const context = canvas.getContext('2d');
+    const context = canvas?.getContext('2d');
   
     if (!context) {
+      console.error('Could not get 2D rendering context.');
       return;
     }
   
@@ -97,50 +105,48 @@ function App() {
     let intervalId: NodeJS.Timeout;
   
     const draw = () => {
+      // console.log('Drawing...');
+      animationFrameId = requestAnimationFrame(draw);
       context.clearRect(0, 0, canvas.width, canvas.height);
-    
+  
       towers.forEach((tower) => {
         tower.draw(context, fieldSize);
       });
-    
-      // Update monsters
+  
       monsters.forEach((monster) => {
         monster.update();
-      });
-    
-      // Display monsters
-      monsters.forEach((monster) => {
         monster.display(context, fieldSize);
       });
-    
-      // Filter out monsters with no path after updating
-      const filteredMonsters = monsters.filter((monster) => monster.path.length > 0);
-      setMonsters(filteredMonsters);
-    
-      // Decrease nextWaveFrame every second
-      if (gameStarted && nextWaveFrame > 0) {
-        setNextWaveFrame((prevNextWaveFrame) => Math.max(0, prevNextWaveFrame - 5));
-      }
-    
-      // Request the next animation frame
-      animationFrameId = requestAnimationFrame(draw);
-    };
-    
-    // Start the drawing loop
-    // animationFrameId = requestAnimationFrame(draw);
   
-    // Decrease nextWaveFrame every second
-    intervalId = setInterval(() => {
+      const filteredMonsters = monsters.filter((monster) => monster.path.length > 0);
+      setMonsters((prevMonsters) => filteredMonsters);
+  
       if (gameStarted && nextWaveFrame > 0) {
-        setNextWaveFrame((prevNextWaveFrame) => prevNextWaveFrame - 5); // Decrease every second
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - startTime.current;
+        const secondsPassed = Math.floor(elapsedTime / 1000);
+  
+        setNextWaveFrame((prevNextWaveFrame) => Math.max(0, initialNextWaveFrame - secondsPassed * 5));
+      }
+    };
+  
+    animationFrameId = requestAnimationFrame(draw);
+  
+    intervalId = setInterval(() => {
+      if (gameStarted) {
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - startTime.current;
+        const secondsPassed = Math.floor(elapsedTime / 1000);
+  
+        setNextWaveFrame((prevNextWaveFrame) => Math.max(0, initialNextWaveFrame - secondsPassed * 5));
       }
     }, 1000);
   
     return () => {
-      cancelAnimationFrame(animationFrameId); // Cleanup when the component unmounts
-      clearInterval(intervalId); // Cleanup the interval
+      cancelAnimationFrame(animationFrameId);
+      clearInterval(intervalId);
     };
-  }, [gameStarted, nextWaveFrame, monsters, towers, canvasRef, fieldSize, currentLevel]);
+  }, [gameStarted, nextWaveFrame, initialNextWaveFrame, monsters, towers, canvasRef, fieldSize, currentLevel]);
   
   return (
     <div className="main">

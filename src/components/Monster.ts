@@ -22,7 +22,9 @@ class Monster {
 
     const nextPos = this.path.shift();
     if (nextPos) {
+      console.log("Updating monster:", this.position, this.displayPosition);
       this.position = { ...nextPos.position };
+      this.displayPosition = { ...nextPos.position }; 
     }
   }
 
