@@ -131,8 +131,13 @@ function App() {
   
     let animationFrameId: number;
     let intervalId: NodeJS.Timeout;
-  
+    
     const draw = () => {
+
+      if (!gameStarted) {
+        return;
+      }
+
       animationFrameId = requestAnimationFrame(draw);
       context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -210,6 +215,16 @@ function App() {
       clearInterval(intervalId);
     };
   }, [gameStarted, nextWaveFrame, initialNextWaveFrame, monsters, towers, canvasRef, fieldSize, currentLevel, monsterPath]);
+
+  useEffect(() => {
+    if (nextWaveFrame === 0) {
+      // timeout to take a second to go to the next level
+      setTimeout(() => {
+        startNextLevel();
+      }, 1000);
+    }
+  }, [nextWaveFrame]);
+  
  
   return (
     <div className="main">
