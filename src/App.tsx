@@ -6,7 +6,8 @@ import Monster from './components/Monster';
 import MonsterPath from './components/MonsterPath';
 
 const fieldSize = 30; // Pixels for each field
-const waveFrame = 20;
+const waveFrame = 50;
+const towerCost = 20;
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
@@ -18,6 +19,7 @@ function App() {
   const [monsters, setMonsters] = useState<Monster[]>([]);
   const startTime = useRef<number>(0);
   const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(waveFrame);
+  const [monsterPath, setMonsterPath] = useState<MonsterPath[] | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -44,7 +46,6 @@ function App() {
     const gridY = Math.floor(mouseY / fieldSize);
 
     // Check if enough gold is present
-    const towerCost = 20; // Set an appropriate cost for towers
     if (gold >= towerCost && selectedTower) { // Check if selectedTower is not null
       // Deduct gold
       setGold((prevGold) => prevGold - towerCost);
@@ -67,42 +68,7 @@ function App() {
       createMonstersForLevel(1);
     }
   };
-  
-  const createMonstersForLevel = (level: number) => {
-    const numberOfMonsters = level * 2;
-  
-    const createMonsterWithDelay = (index: number) => {
-      setTimeout(() => {  
-        const monsterPath: MonsterPath[] = [
-          { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
-          { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
-          { position: { x: 2, y: 0 }, nextPosition: { x: 3, y: 0 } },
-          { position: { x: 3, y: 0 }, nextPosition: { x: 4, y: 0 } },
-          { position: { x: 4, y: 0 }, nextPosition: { x: 5, y: 0 } },
-          { position: { x: 5, y: 0 }, nextPosition: { x: 6, y: 0 } },
-          { position: { x: 6, y: 0 }, nextPosition: { x: 6, y: 1 } },
-          { position: { x: 6, y: 1 }, nextPosition: { x: 6, y: 2 } },
-          { position: { x: 6, y: 2 }, nextPosition: { x: 6, y: 3 } },
-          { position: { x: 6, y: 3 }, nextPosition: { x: 6, y: 4 } },
-          { position: { x: 6, y: 4 }, nextPosition: { x: 6, y: 5 } },
-          { position: { x: 6, y: 5 }, nextPosition: { x: 7, y: 5 } },
-          { position: { x: 7, y: 5 }, nextPosition: { x: 8, y: 5 } },
-          { position: { x: 8, y: 5 }, nextPosition: { x: 9, y: 5 } },
-          { position: { x: 9, y: 5 }, nextPosition: { x: 10, y: 5 } },
-          { position: { x: 10, y: 5 }, nextPosition: { x: 11, y: 5 } },
-          { position: { x: 11, y: 5 }, nextPosition: null },
-        ];
-  
-        const newMonster = new Monster(monsterPath);
-        setMonsters((prevMonsters) => [...prevMonsters, newMonster]);
-      }, index * 1000); // Adjust the delay (1000 milliseconds = 1 second)
-    };
-  
-    for (let i = 0; i < numberOfMonsters; i++) {
-      createMonsterWithDelay(i);
-    }
-  };
-  
+
   const startNextLevel = () => {
     setCurrentLevel((prevLevel) => prevLevel + 1);
     setInitialNextWaveFrame(waveFrame); // Set the initial value for nextWaveFrame
@@ -111,6 +77,48 @@ function App() {
     setNextWaveFrame(waveFrame); // Reset the nextWaveFrame
   };
 
+  const generateMonsterPath = React.useMemo(() =>  {
+    // Define your path data here
+    const pathData = [
+      { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
+      { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
+      { position: { x: 2, y: 0 }, nextPosition: { x: 3, y: 0 } },
+      { position: { x: 3, y: 0 }, nextPosition: { x: 4, y: 0 } },
+      { position: { x: 4, y: 0 }, nextPosition: { x: 5, y: 0 } },
+      { position: { x: 5, y: 0 }, nextPosition: { x: 6, y: 0 } },
+      { position: { x: 6, y: 0 }, nextPosition: { x: 6, y: 1 } },
+      { position: { x: 6, y: 1 }, nextPosition: { x: 6, y: 2 } },
+      { position: { x: 6, y: 2 }, nextPosition: { x: 6, y: 3 } },
+      { position: { x: 6, y: 3 }, nextPosition: { x: 6, y: 4 } },
+      { position: { x: 6, y: 4 }, nextPosition: { x: 6, y: 5 } },
+      { position: { x: 6, y: 5 }, nextPosition: { x: 7, y: 5 } },
+      { position: { x: 7, y: 5 }, nextPosition: { x: 8, y: 5 } },
+      { position: { x: 8, y: 5 }, nextPosition: { x: 9, y: 5 } },
+      { position: { x: 9, y: 5 }, nextPosition: { x: 10, y: 5 } },
+      { position: { x: 10, y: 5 }, nextPosition: { x: 11, y: 5 } },
+    ];
+  
+    setMonsterPath(pathData);
+    return pathData;
+  }, []);
+  
+  // Call this function in createMonstersForLevel
+  const createMonstersForLevel = (level: number) => {
+    const numberOfMonsters = level * 2;
+  
+    const createMonsterWithDelay = (index: number) => {
+      setTimeout(() => {
+        const pathCopy = [...generateMonsterPath];
+        const newMonster = new Monster(pathCopy);
+        setMonsters((prevMonsters) => [...prevMonsters, newMonster]);
+      }, index * 1000);
+    };
+    
+    for (let i = 0; i < numberOfMonsters; i++) {
+      createMonsterWithDelay(i);
+    }
+  };
+  
   useEffect(() => {
     // console.log('Component is mounted and rendered.');
     const canvas = canvasRef.current!;
@@ -125,54 +133,84 @@ function App() {
     let intervalId: NodeJS.Timeout;
   
     const draw = () => {
-      // console.log('Drawing...');
       animationFrameId = requestAnimationFrame(draw);
       context.clearRect(0, 0, canvas.width, canvas.height);
-    
+
+      // Draw the path
+      if (monsterPath) {
+        context.strokeStyle = 'gray';
+        context.lineWidth = fieldSize;
+
+        context.beginPath();
+        monsterPath.forEach((pathSegment, index) => {
+          const { x, y } = pathSegment.position;
+
+          if (index === 0) {
+            context.moveTo(x * fieldSize, y * fieldSize + fieldSize / 2);
+          } else {
+            context.lineTo(x * fieldSize + fieldSize / 2, y * fieldSize + fieldSize / 2);
+          }
+
+          if (pathSegment.nextPosition) {
+            const { x: nextX, y: nextY } = pathSegment.nextPosition;
+
+            // Draw horizontal line
+            context.lineTo(nextX * fieldSize + fieldSize / 2, y * fieldSize + fieldSize / 2);
+
+            // Draw vertical line
+            context.lineTo(nextX * fieldSize + fieldSize / 2, nextY * fieldSize + fieldSize / 2);
+
+            // If it's the last segment, connect back to the bottom-center of the last square
+            if (index === monsterPath.length - 1) {
+              context.lineTo(nextX * fieldSize + fieldSize / 2, nextY * fieldSize + fieldSize);
+            }
+          }
+        });
+        context.stroke();
+      }
+
       towers.forEach((tower) => {
         tower.draw(context, fieldSize);
       });
-    
-      // Update monsters separately
+
       monsters.forEach((monster) => {
         monster.update(100, 0.5);
       });
-    
-      // Display monsters after updating them
+
       monsters.forEach((monster) => {
         monster.display(context, fieldSize);
       });
-    
+
       const filteredMonsters = monsters.filter((monster) => monster.path.length > 0);
       setMonsters((prevMonsters) => filteredMonsters);
-    
+
       if (gameStarted && nextWaveFrame > 0) {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime.current;
         const secondsPassed = Math.floor(elapsedTime / 1000);
-    
+
         setNextWaveFrame((prevNextWaveFrame) => Math.max(0, initialNextWaveFrame - secondsPassed * 5));
       }
     };
-    
+
     animationFrameId = requestAnimationFrame(draw);
-  
+
     intervalId = setInterval(() => {
       if (gameStarted) {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime.current;
         const secondsPassed = Math.floor(elapsedTime / 1000);
-  
+
         setNextWaveFrame((prevNextWaveFrame) => Math.max(0, initialNextWaveFrame - secondsPassed * 5));
       }
     }, 1000);
-  
+
     return () => {
       cancelAnimationFrame(animationFrameId);
       clearInterval(intervalId);
     };
-  }, [gameStarted, nextWaveFrame, initialNextWaveFrame, monsters, towers, canvasRef, fieldSize, currentLevel]);
-  
+  }, [gameStarted, nextWaveFrame, initialNextWaveFrame, monsters, towers, canvasRef, fieldSize, currentLevel, monsterPath]);
+ 
   return (
     <div className="main">
       <h1>My Tower Defense</h1>
@@ -199,8 +237,8 @@ function App() {
       <br></br>
       <canvas ref={canvasRef} width={fieldSize * 25} height={fieldSize * 15} onClick={handleCanvasClick}></canvas>
       <br></br>
-      {nextWaveFrame === 0 && gameStarted && (
-        <button onClick={startNextLevel}>Start Next Level</button>
+      {gameStarted && (
+        <button onClick={startNextLevel}>Next Wave</button>
       )}
     </div>
   );
