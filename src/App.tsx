@@ -6,17 +6,18 @@ import Monster from './components/Monster';
 import MonsterPath from './components/MonsterPath';
 
 const fieldSize = 30; // Pixels for each field
+const waveFrame = 20;
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [gold, setGold] = useState(100);
   const [selectedTower, setSelectedTower] = useState<string | null>(null); // Explicitly set the type for selectedTower
-  const [nextWaveFrame, setNextWaveFrame] = useState(20);
+  const [nextWaveFrame, setNextWaveFrame] = useState(waveFrame);
   const [currentLevel, setCurrentLevel] = useState(1);
   const [towers, setTowers] = useState<Tower[]>([]); // Array of towers
   const [monsters, setMonsters] = useState<Monster[]>([]);
   const startTime = useRef<number>(0);
-  const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(20);
+  const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(waveFrame);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -62,41 +63,52 @@ function App() {
       startTime.current = Date.now();
     }
     setGameStarted((prevGameStarted) => !prevGameStarted);
+    if (currentLevel == 1 && nextWaveFrame == waveFrame) {
+      createMonstersForLevel(1);
+    }
   };
   
   const createMonstersForLevel = (level: number) => {
     const numberOfMonsters = level * 2;
-    const monstersForLevel: Monster[] = [];
-
+  
+    const createMonsterWithDelay = (index: number) => {
+      setTimeout(() => {  
+        const monsterPath: MonsterPath[] = [
+          { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
+          { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
+          { position: { x: 2, y: 0 }, nextPosition: { x: 3, y: 0 } },
+          { position: { x: 3, y: 0 }, nextPosition: { x: 4, y: 0 } },
+          { position: { x: 4, y: 0 }, nextPosition: { x: 5, y: 0 } },
+          { position: { x: 5, y: 0 }, nextPosition: { x: 6, y: 0 } },
+          { position: { x: 6, y: 0 }, nextPosition: { x: 6, y: 1 } },
+          { position: { x: 6, y: 1 }, nextPosition: { x: 6, y: 2 } },
+          { position: { x: 6, y: 2 }, nextPosition: { x: 6, y: 3 } },
+          { position: { x: 6, y: 3 }, nextPosition: { x: 6, y: 4 } },
+          { position: { x: 6, y: 4 }, nextPosition: { x: 6, y: 5 } },
+          { position: { x: 6, y: 5 }, nextPosition: { x: 7, y: 5 } },
+          { position: { x: 7, y: 5 }, nextPosition: { x: 8, y: 5 } },
+          { position: { x: 8, y: 5 }, nextPosition: { x: 9, y: 5 } },
+          { position: { x: 9, y: 5 }, nextPosition: { x: 10, y: 5 } },
+          { position: { x: 10, y: 5 }, nextPosition: { x: 11, y: 5 } },
+          { position: { x: 11, y: 5 }, nextPosition: null },
+        ];
+  
+        const newMonster = new Monster(monsterPath);
+        setMonsters((prevMonsters) => [...prevMonsters, newMonster]);
+      }, index * 1000); // Adjust the delay (1000 milliseconds = 1 second)
+    };
+  
     for (let i = 0; i < numberOfMonsters; i++) {
-      const monsterPath: MonsterPath[] = [
-        { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
-        { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
-        { position: { x: 2, y: 0 }, nextPosition: { x: 3, y: 0 } },
-        { position: { x: 3, y: 0 }, nextPosition: { x: 4, y: 0 } },
-        { position: { x: 4, y: 0 }, nextPosition: { x: 5, y: 0 } },
-        { position: { x: 5, y: 0 }, nextPosition: { x: 6, y: 0 } },
-        { position: { x: 6, y: 0 }, nextPosition: { x: 6, y: 1 } },
-        { position: { x: 6, y: 1 }, nextPosition: { x: 6, y: 2 } },
-        { position: { x: 6, y: 2 }, nextPosition: { x: 6, y: 3 } },
-        { position: { x: 6, y: 3 }, nextPosition: { x: 6, y: 4 } },
-        { position: { x: 6, y: 4 }, nextPosition: { x: 6, y: 5 } },
-        { position: { x: 6, y: 5 }, nextPosition: null },
-      ];
-
-      const newMonster = new Monster(monsterPath);
-      monstersForLevel.push(newMonster);
+      createMonsterWithDelay(i);
     }
-
-    setMonsters((prevMonsters) => [...prevMonsters, ...monstersForLevel]);
   };
-
+  
   const startNextLevel = () => {
     setCurrentLevel((prevLevel) => prevLevel + 1);
-    setInitialNextWaveFrame(20); // Set the initial value for nextWaveFrame
+    setInitialNextWaveFrame(waveFrame); // Set the initial value for nextWaveFrame
     startTime.current = Date.now(); // Update startTime for the new level
     createMonstersForLevel(currentLevel + 1);
-    setNextWaveFrame(20); // Reset the nextWaveFrame
+    setNextWaveFrame(waveFrame); // Reset the nextWaveFrame
   };
 
   useEffect(() => {
@@ -123,7 +135,7 @@ function App() {
     
       // Update monsters separately
       monsters.forEach((monster) => {
-        monster.update(500, 0.5);
+        monster.update(100, 0.5);
       });
     
       // Display monsters after updating them
@@ -185,9 +197,9 @@ function App() {
         </ToggleButtonGroup>
       )}
       <br></br>
-      <canvas ref={canvasRef} width={fieldSize * 10} height={fieldSize * 10} onClick={handleCanvasClick}></canvas>
+      <canvas ref={canvasRef} width={fieldSize * 25} height={fieldSize * 15} onClick={handleCanvasClick}></canvas>
       <br></br>
-      {nextWaveFrame === 0 && (
+      {nextWaveFrame === 0 && gameStarted && (
         <button onClick={startNextLevel}>Start Next Level</button>
       )}
     </div>
