@@ -21,35 +21,42 @@ class Monster {
       this.lives--; // Deduct a life
       return;
     }
-
-    const timeFraction = elapsedTime / 1000; // Convert elapsed time to seconds
+  
     const currentPos = this.path[0];
-
+  
     if (currentPos) {
       const { x, y } = currentPos.position;
       const nextPos = currentPos.nextPosition;
-
+  
       if (nextPos) {
-        // Update monster position based on elapsed time and speed
-        this.position.x += (nextPos.x - x) * timeFraction * this.speed;
-        this.position.y += (nextPos.y - y) * timeFraction * this.speed;
-
-        // Check if the monster has reached the next position
+        // Calculate the distance the monster should move in this frame
+        const distanceToMove = this.speed * (elapsedTime / 1000);
+  
+        // Calculate the angle to the next position
+        const angle = Math.atan2(nextPos.y - y, nextPos.x - x);
+  
+        // Update monster position based on the calculated distance and angle
+        this.position.x += Math.cos(angle) * distanceToMove;
+        this.position.y += Math.sin(angle) * distanceToMove;
+  
+        // Check if the monster has reached the next position precisely
         const distance = Math.sqrt(
           Math.pow(nextPos.x - this.position.x, 2) + Math.pow(nextPos.y - this.position.y, 2)
         );
-
-        if (distance < 0.1) {
+  
+        if (distance <= distanceToMove) {
+          // Set the position directly to the next position
+          this.position = { ...nextPos };
           // Remove the current position from the path
           this.path.shift();
         }
       }
-
+  
       // Update display position if needed
       this.displayPosition = { ...this.position };
     }
   }
-
+  
   display(context: CanvasRenderingContext2D, fieldSize: number) {
     const { x, y } = this.displayPosition;
     context.fillStyle = 'purple'; // Set the color as needed
