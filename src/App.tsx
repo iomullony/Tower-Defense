@@ -11,12 +11,12 @@ function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [gold, setGold] = useState(100);
   const [selectedTower, setSelectedTower] = useState<string | null>(null); // Explicitly set the type for selectedTower
-  const [nextWaveFrame, setNextWaveFrame] = useState(250);
+  const [nextWaveFrame, setNextWaveFrame] = useState(20);
   const [currentLevel, setCurrentLevel] = useState(1);
   const [towers, setTowers] = useState<Tower[]>([]); // Array of towers
   const [monsters, setMonsters] = useState<Monster[]>([]);
   const startTime = useRef<number>(0);
-  const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(250);
+  const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(20);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -93,10 +93,10 @@ function App() {
 
   const startNextLevel = () => {
     setCurrentLevel((prevLevel) => prevLevel + 1);
-    setInitialNextWaveFrame(250); // Set the initial value for nextWaveFrame
+    setInitialNextWaveFrame(20); // Set the initial value for nextWaveFrame
     startTime.current = Date.now(); // Update startTime for the new level
     createMonstersForLevel(currentLevel + 1);
-    setNextWaveFrame(250); // Reset the nextWaveFrame
+    setNextWaveFrame(20); // Reset the nextWaveFrame
   };
 
   useEffect(() => {
@@ -116,28 +116,33 @@ function App() {
       // console.log('Drawing...');
       animationFrameId = requestAnimationFrame(draw);
       context.clearRect(0, 0, canvas.width, canvas.height);
-  
+    
       towers.forEach((tower) => {
         tower.draw(context, fieldSize);
       });
-  
+    
+      // Update monsters separately
       monsters.forEach((monster) => {
-        monster.update();
+        monster.update(500, 0.5);
+      });
+    
+      // Display monsters after updating them
+      monsters.forEach((monster) => {
         monster.display(context, fieldSize);
       });
-  
+    
       const filteredMonsters = monsters.filter((monster) => monster.path.length > 0);
       setMonsters((prevMonsters) => filteredMonsters);
-  
+    
       if (gameStarted && nextWaveFrame > 0) {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime.current;
         const secondsPassed = Math.floor(elapsedTime / 1000);
-  
+    
         setNextWaveFrame((prevNextWaveFrame) => Math.max(0, initialNextWaveFrame - secondsPassed * 5));
       }
     };
-  
+    
     animationFrameId = requestAnimationFrame(draw);
   
     intervalId = setInterval(() => {

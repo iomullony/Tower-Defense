@@ -13,18 +13,38 @@ class Monster {
     this.path = path;
   }
 
-  update() {
+  update(elapsedTime: number, speed: number = 1) {
     if (this.path.length === 0) {
       // Monster reached the end
       this.lives--; // Deduct a life
       return;
     }
 
-    const nextPos = this.path.shift();
-    if (nextPos) {
-      console.log("Updating monster:", this.position, this.displayPosition);
-      this.position = { ...nextPos.position };
-      this.displayPosition = { ...nextPos.position }; 
+    const timeFraction = elapsedTime / 1000; // Convert elapsed time to seconds
+    const currentPos = this.path[0];
+
+    if (currentPos) {
+      const { x, y } = currentPos.position;
+      const nextPos = currentPos.nextPosition;
+
+      if (nextPos) {
+        // Update monster position based on elapsed time and speed
+        this.position.x += (nextPos.x - x) * timeFraction * speed;
+        this.position.y += (nextPos.y - y) * timeFraction * speed;
+
+        // Check if the monster has reached the next position
+        const distance = Math.sqrt(
+          Math.pow(nextPos.x - this.position.x, 2) + Math.pow(nextPos.y - this.position.y, 2)
+        );
+
+        if (distance < 0.1) {
+          // Remove the current position from the path
+          this.path.shift();
+        }
+      }
+
+      // Update display position if needed
+      this.displayPosition = { ...this.position };
     }
   }
 
