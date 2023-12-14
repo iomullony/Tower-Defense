@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
+
 import Tower from './components/Tower';
-import MonsterPath from './components/MonsterPath';
 import Monster from './components/Monster';
+import MonsterPath from './components/MonsterPath';
 
 const fieldSize = 30; // Pixels for each field
-const monsterSpeed = 1; // Adjust as needed
-const monsterUpdateInterval = 100;
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
@@ -17,13 +16,21 @@ function App() {
   const [towers, setTowers] = useState<Tower[]>([]); // Array of towers
   const [monsters, setMonsters] = useState<Monster[]>([]);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null); // Add HTMLCanvasElement type
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const handleTowerSelection = (value: React.SetStateAction<string | null>) => {
+    if (!gameStarted) {
+      alert('Please start the game first!');
+      return;
+    }
     setSelectedTower(value);
   };
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!gameStarted) {
+      alert('Please start the game first!');
+      return;
+    }
     const canvas = event.currentTarget;
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
@@ -45,90 +52,96 @@ function App() {
     } else {
       alert('Not enough gold or tower not selected to build a tower!');
     }
-
-    const newMonsterPath: MonsterPath[] = [
-      { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
-      { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
-      { position: { x: 2, y: 0 }, nextPosition: { x: 3, y: 0 } },
-      { position: { x: 3, y: 0 }, nextPosition: { x: 4, y: 0 } },
-      { position: { x: 4, y: 0 }, nextPosition: null }, // last position is null
-    ];
-
-    const newMonster = new Monster(newMonsterPath);
-    setMonsters((prevMonsters) => [...prevMonsters, newMonster]);
-
   };
   
-  const startGame = () => {
-    setGameStarted(true);
+  const startStopGame = () => {
+    setGameStarted((prevGameStarted) => !prevGameStarted);
+  };
+  
+  const createMonstersForLevel = (level: number) => {
+    const numberOfMonsters = level * 2;
+    const monstersForLevel: Monster[] = [];
+
+    for (let i = 0; i < numberOfMonsters; i++) {
+      const monsterPath: MonsterPath[] = [
+        { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
+        { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
+        // Add more positions as needed for a longer path
+        { position: { x: 2, y: 0 }, nextPosition: { x: 2, y: 1 } },
+        { position: { x: 2, y: 1 }, nextPosition: { x: 1, y: 1 } },
+        { position: { x: 1, y: 1 }, nextPosition: null },
+      ];
+
+      const newMonster = new Monster(monsterPath);
+      monstersForLevel.push(newMonster);
+    }
+
+    setMonsters((prevMonsters) => [...prevMonsters, ...monstersForLevel]);
+  };
+
+  const startNextLevel = () => {
+    setCurrentLevel((prevLevel) => prevLevel + 1); // Increase the level
+    createMonstersForLevel(currentLevel + 1); // Start the new level
+    setNextWaveFrame(250); // Reset the nextWaveFrame
   };
 
   useEffect(() => {
     const canvas = canvasRef.current!;
     const context = canvas.getContext('2d');
-
-    let animationFrameId: number;
-    let monsterIntervalId: number;
-
-    
-    if (!canvas || !context) {
-      console.error('Canvas or context is null or undefined.');
+  
+    if (!context) {
       return;
     }
-
+  
+    let animationFrameId: number;
+    let intervalId: NodeJS.Timeout;
+  
     const draw = () => {
       context.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw each tower
+    
       towers.forEach((tower) => {
         tower.draw(context, fieldSize);
       });
-
-      // C. Call the Monster.display method for each monster
+    
+      // Update monsters
+      monsters.forEach((monster) => {
+        monster.update();
+      });
+    
+      // Display monsters
       monsters.forEach((monster) => {
         monster.display(context, fieldSize);
       });
-
-      // D. Update each monster's position with controlled speed
-      monsters.forEach((monster) => {
-        for (let i = 0; i < monsterSpeed; i++) {
-          monster.update();
-        }
-      });
-
-      // Continue the drawing loop
+    
+      // Filter out monsters with no path after updating
+      const filteredMonsters = monsters.filter((monster) => monster.path.length > 0);
+      setMonsters(filteredMonsters);
+    
+      // Decrease nextWaveFrame every second
+      if (gameStarted && nextWaveFrame > 0) {
+        setNextWaveFrame((prevNextWaveFrame) => Math.max(0, prevNextWaveFrame - 5));
+      }
+    
+      // Request the next animation frame
       animationFrameId = requestAnimationFrame(draw);
     };
-
-    // B. Check if it's time to create new monsters based on nextWaveFrame
-    const handleNextWave = () => {
-      if (gameStarted && nextWaveFrame % 100 === 0) {
-        const newMonsterPath: MonsterPath[] = [
-          { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
-          { position: { x: 1, y: 0 }, nextPosition: { x: 2, y: 0 } },
-          { position: { x: 2, y: 0 }, nextPosition: null }, // last position is null
-        ];
-
-        const newMonster = new Monster(newMonsterPath);
-        setMonsters((prevMonsters) => [...prevMonsters, newMonster]);
-      }
-    };
-
+    
     // Start the drawing loop
-    draw();
-
-    // Start the interval for updating monsters
-    monsterIntervalId = setInterval(() => {
-      handleNextWave();
-    }, monsterUpdateInterval);
-
-    // Cleanup functions
+    // animationFrameId = requestAnimationFrame(draw);
+  
+    // Decrease nextWaveFrame every second
+    intervalId = setInterval(() => {
+      if (gameStarted && nextWaveFrame > 0) {
+        setNextWaveFrame((prevNextWaveFrame) => prevNextWaveFrame - 5); // Decrease every second
+      }
+    }, 1000);
+  
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      clearInterval(monsterIntervalId);
+      cancelAnimationFrame(animationFrameId); // Cleanup when the component unmounts
+      clearInterval(intervalId); // Cleanup the interval
     };
-  }, [towers, monsters, gameStarted, nextWaveFrame]);
-
+  }, [gameStarted, nextWaveFrame, monsters, towers, canvasRef, fieldSize, currentLevel]);
+  
   return (
     <div className="main">
       <h1>My Tower Defense</h1>
@@ -137,21 +150,27 @@ function App() {
       <p>Selected Tower: {selectedTower}</p>
       <p>Next Wave Frame: {nextWaveFrame}</p>
       <p>Current Level: {currentLevel}</p>
-      <button onClick={startGame}>Start Game</button>
+      <button onClick={startStopGame}>{gameStarted ? 'Stop Game' : 'Start Game'}</button>
 
-      <ToggleButtonGroup type="radio" name="towers" defaultValue={null} onChange={handleTowerSelection}>
-        <ToggleButton value="regular" id={'Regular'}>
-          Regular Tower
-        </ToggleButton>
-        <ToggleButton value="ice" id={'Ice'}>
-          Ice Tower
-        </ToggleButton>
-        <ToggleButton value="fire" id={'Fire'}>
-          Fire Tower
-        </ToggleButton>
-      </ToggleButtonGroup>
+      {gameStarted && (
+        <ToggleButtonGroup type="radio" name="towers" defaultValue={null} onChange={handleTowerSelection}>
+          <ToggleButton value="regular" id={'Regular'}>
+            Regular Tower
+          </ToggleButton>
+          <ToggleButton value="ice" id={'Ice'}>
+            Ice Tower
+          </ToggleButton>
+          <ToggleButton value="fire" id={'Fire'}>
+            Fire Tower
+          </ToggleButton>
+        </ToggleButtonGroup>
+      )}
       <br></br>
       <canvas ref={canvasRef} width={fieldSize * 10} height={fieldSize * 10} onClick={handleCanvasClick}></canvas>
+      <br></br>
+      {nextWaveFrame === 0 && (
+        <button onClick={startNextLevel}>Start Next Level</button>
+      )}
     </div>
   );
 }
