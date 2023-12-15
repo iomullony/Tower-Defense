@@ -6,6 +6,9 @@ class Tower {
   public range: number;
   public maxCooldown: number;
   public upgradeLevel: number;
+  public damage: number;
+  public freezeDuration: number;
+  public freezeFactor: number;
 
   constructor(type: string, x: number, y: number) {
     this.type = type;
@@ -15,10 +18,25 @@ class Tower {
     this.cooldown = this.maxCooldown;
     this.range = 2;
     this.upgradeLevel = 1;
+    this.freezeDuration = 1000;
+    this.freezeFactor = 0.5;
+
+    switch (type) {
+      case 'regular':
+        this.damage = 1;
+        break;
+      case 'ice':
+        this.damage = 0.5;
+        break;
+      case 'fire':
+        this.damage = 2;
+        break;
+      default:
+        this.damage = 1;
+    }
   }
 
   draw(context: CanvasRenderingContext2D, fieldSize: number) {
-    // Choose different visualization based on the tower type
     switch (this.type) {
       case 'regular':
         context.fillStyle = 'green';
@@ -33,10 +51,10 @@ class Tower {
         context.fillStyle = 'gray';
     }
 
-    // Draw a simple rectangle representing the tower
+    // Rrectangle representing the tower
     context.fillRect(this.x * fieldSize, this.y * fieldSize, fieldSize, fieldSize);
 
-    // Draw the upgrade button
+    // Upgrade button
     context.fillStyle = 'yellow';
     context.fillRect(
       this.x * fieldSize + fieldSize / 2 - 10,
@@ -48,9 +66,9 @@ class Tower {
     // Display the upgrade level
     context.fillStyle = 'black';
     context.font = '10px Arial';
-    context.fillText(`Level ${this.upgradeLevel}`, this.x * fieldSize, this.y * fieldSize + fieldSize);
+    context.fillText(`Lvl. ${this.upgradeLevel}`, this.x * fieldSize, this.y * fieldSize + fieldSize);
 
-    // Draw a circle representing the attack range
+    // Attack range
     context.beginPath();
     context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     context.lineWidth = 1;
@@ -63,9 +81,14 @@ class Tower {
     );
     context.stroke();
   }
+
   updateCooldown() {
     this.cooldown = Math.max(0, this.cooldown - 1);
   }  
+
+  getDamage(): number {
+    return this.damage + this.upgradeLevel - 1;
+  }
 }
 
 export default Tower;

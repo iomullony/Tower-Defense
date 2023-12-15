@@ -1,14 +1,17 @@
 import Monster from "./Monster";
+import Tower from "./Tower";
 
 class Shot {
   position: { x: number; y: number };
   type: string;
   goal: Monster;
+  tower: Tower;
 
-  constructor(position: { x: number; y: number }, type: string, goal: Monster) {
+  constructor(position: { x: number; y: number }, type: string, goal: Monster, tower: Tower) {
     this.position = position;
     this.type = type;
     this.goal = goal;
+    this.tower = tower;
   }
 
   draw(context: CanvasRenderingContext2D, fieldSize: number) {

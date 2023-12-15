@@ -104,7 +104,7 @@ const Game: React.FC = () => {
     setMonsterPath(pathData);
     return pathData;
   }, []);
-
+  
   const handleTowerSelection = (value: React.SetStateAction<string | null>) => {
     if (!gameStarted) {
       alert('Please start the game first!');
@@ -154,11 +154,14 @@ const Game: React.FC = () => {
       alert('Cannot place tower on the monster path!');
       return;
     }
+
+    let selectedTowerCost = towerCost; // Default cost for regular and ice towers
+
+    if (selectedTower === "fire") selectedTowerCost = towerCost + 20;
   
-    // Check if enough gold is present
-    if (gold >= towerCost && selectedTower) {
+    if (gold >= selectedTowerCost && selectedTower) {
       // Deduct gold
-      setGold((prevGold) => prevGold - towerCost);
+      setGold((prevGold) => prevGold - selectedTowerCost);
   
       // Check if there's already a tower at the clicked grid position
       const existingTowerIndex = towers.findIndex((tower) => tower.x === gridX && tower.y === gridY);
@@ -177,7 +180,7 @@ const Game: React.FC = () => {
       alert('Not enough gold or tower not selected to build a tower!');
     }
   };
-  
+
   // Function to check if a grid position is on the monster path
   const isGridPositionOnPath = (gridX: number, gridY: number): boolean => {
     if (!monsterPath) {
@@ -238,10 +241,14 @@ const Game: React.FC = () => {
   const handleTowerUpgrade = (tower: Tower) => {
     // Define the minimum level required for upgrades
     const upgradeLevelRequirement = 1; // Adjust as needed
+
+    let selectedUpgradeCost = upgradeCost;
+
+    if (tower.type === "fire") selectedUpgradeCost = upgradeCost + 25;
   
     // Check if the current level is greater than or equal to the upgrade level requirement
-    if (currentLevel >= upgradeLevelRequirement && gold >= upgradeCost && tower.upgradeLevel < 3) {
-      setGold((prevGold) => prevGold - upgradeCost);
+    if (currentLevel >= upgradeLevelRequirement && gold >= selectedUpgradeCost && tower.upgradeLevel < 5) {
+      setGold((prevGold) => prevGold - selectedUpgradeCost);
   
       // Increase upgrade level
       tower.upgradeLevel += 1;
@@ -253,6 +260,20 @@ const Game: React.FC = () => {
           break;
         case 3:
           tower.maxCooldown = 30; // Upgrade shooting speed to 30
+          break;
+        case 4:
+          tower.damage += 1; // Upgrade damage by 1
+          if (tower.type === 'ice') {
+            tower.freezeDuration += 1000;
+            tower.freezeFactor -= 0.1;
+          }
+          break;
+        case 5:
+          tower.damage += 2; // Upgrade damage by 1
+          if (tower.type === 'ice') {
+            tower.freezeDuration += 2000;
+            tower.freezeFactor -= 0.2;
+          }
           break;
         default:
           break;
@@ -371,7 +392,7 @@ const Game: React.FC = () => {
           });
       
           if (targetMonster) {
-            const newShot = new Shot({ x: tower.x, y: tower.y }, tower.type, targetMonster);
+            const newShot = new Shot({ x: tower.x, y: tower.y }, tower.type, targetMonster, tower);
             setShots((prevShots) => [...prevShots, newShot]);
             tower.cooldown = tower.maxCooldown;
           }
@@ -386,12 +407,12 @@ const Game: React.FC = () => {
         // Check if the shot reached the monster
         if (distanceToGoal < threshold) {
           if (shot.type === 'regular') {
-            shot.goal.hit(1);
+            shot.goal.hit(shot.tower.damage);
           } else if (shot.type === 'ice') {
-            shot.goal.hit(0.5);
-            shot.goal.freeze(2000, 0.1);
+            shot.goal.hit(shot.tower.damage);
+            shot.goal.freeze(shot.tower.freezeDuration, shot.tower.freezeFactor);
           } else if (shot.type === 'fire') {
-            shot.goal.hit(2);
+            shot.goal.hit(shot.tower.damage);
           }
       
           setShots((prevShots) => prevShots.filter((_, index) => index !== shotIndex));
@@ -406,7 +427,7 @@ const Game: React.FC = () => {
         if (defeatedMonsters > 0) {
           // Grant gold as a reward for each defeated monster
           setGold((prevGold) => {
-            const newGold = prevGold + defeatedMonsters * 5;
+            const newGold = prevGold + 5;
       
             // Check if the player has collected 200 coins to grant an extra life
             if (newGold >= 200) {
