@@ -21,9 +21,13 @@ If a monster gets to the end of the path you will lose a life. If you lose all y
 You can update a tower cliking in the yellow button below each tower. Each one has four updates: 
 1. Makes the range bigger.
 2. Shoots faster.
-3. More damage and if its an ice tower pauses the mosters for longer.
+3. More damage and if its an ice tower pauses the monsters for longer.
 4. The same as 3 but more
 
 To update a tower you have to pay 100, if it is a fire tower 125.
+
 To create a tower you have to pay 40, if it is a fire tower 50.
+
 Fire towers are more expensive because they make more damage.
+
+Ice towers stop the monsters for some time.
