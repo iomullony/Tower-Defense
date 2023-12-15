@@ -2,11 +2,11 @@
 
 Notes: In tsconfig.json you might need to add "types": ["node"] to be able to use NodeJS.
 
-# Game Initialization
+## Game Initialization
 
 You start with 100 coins and 5 lives.
 
-# Things to take into Account
+## Things to take into Account
 
 Every time you get to 200 coins you will get a life but lose the money, is like you are buying the lives, you can't decide if you want to purcharse it or not.
 
