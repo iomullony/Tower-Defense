@@ -94,6 +94,8 @@ class Monster {
   } 
 
   endPosition() {
+    // console.log('end?');
+    // console.log(this.position);
     return this.path[0].nextPosition === null;
   }
 }
