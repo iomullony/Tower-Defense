@@ -91,7 +91,11 @@ class Monster {
       // Slow down the monster when frozen
       this.speed *= slowFactor; // Adjust the factor as needed
     }
-  }  
+  } 
+
+  endPosition() {
+    return this.path[0].nextPosition === null;
+  }
 }
 
 export default Monster;

@@ -23,6 +23,7 @@ function App() {
   const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(waveFrame);
   const [monsterPath, setMonsterPath] = useState<MonsterPath[] | null>(null);
   const [shots, setShots] = useState<Shot[]>([]);
+  const [lives, setLives] = useState(5);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -95,6 +96,7 @@ function App() {
       { position: { x: 21, y: 11 }, nextPosition: { x: 22, y: 11 } },
       { position: { x: 22, y: 11 }, nextPosition: { x: 23, y: 11 } },
       { position: { x: 23, y: 11 }, nextPosition: { x: 24, y: 11 } },
+      { position: { x: 24, y: 11 }, nextPosition: null },
     ];
   
     setMonsterPath(pathData);
@@ -135,9 +137,21 @@ function App() {
       // Deduct gold
       setGold((prevGold) => prevGold - towerCost);
   
-      // Create and add a new tower to the array
-      const newTower = new Tower(selectedTower, gridX, gridY);
-      setTowers((prevTowers) => [...prevTowers, newTower]);
+      // Check if there's already a tower at the clicked grid position
+      const existingTowerIndex = towers.findIndex(
+        (tower) => tower.x === gridX && tower.y === gridY
+      );
+  
+      if (existingTowerIndex !== -1) {
+        // Replace the existing tower
+        const updatedTowers = [...towers];
+        updatedTowers[existingTowerIndex] = new Tower(selectedTower, gridX, gridY);
+        setTowers(updatedTowers);
+      } else {
+        // Add a new tower to the array
+        const newTower = new Tower(selectedTower, gridX, gridY);
+        setTowers((prevTowers) => [...prevTowers, newTower]);
+      }
     } else {
       alert('Not enough gold or tower not selected to build a tower!');
     }
@@ -227,30 +241,30 @@ function App() {
         context.lineWidth = fieldSize;
 
         context.beginPath();
+
         monsterPath.forEach((pathSegment, index) => {
           const { x, y } = pathSegment.position;
+          const nextX = pathSegment.nextPosition?.x ?? x;
+          const nextY = pathSegment.nextPosition?.y ?? y;
 
           if (index === 0) {
-            context.moveTo(x * fieldSize, y * fieldSize + fieldSize / 2);
-          } else {
-            context.lineTo(x * fieldSize + fieldSize / 2, y * fieldSize + fieldSize / 2);
+            // Move to the bottom-center of the first square
+            context.moveTo(x * fieldSize + fieldSize / 2, y * fieldSize + fieldSize);
           }
 
-          if (pathSegment.nextPosition) {
-            const { x: nextX, y: nextY } = pathSegment.nextPosition;
+          // Draw horizontal line
+          context.lineTo(x * fieldSize + fieldSize / 2, y * fieldSize + fieldSize / 2);
+          
+          // Draw vertical line
+          context.lineTo(nextX * fieldSize + fieldSize / 2, y * fieldSize + fieldSize / 2);
 
-            // Draw horizontal line
-            context.lineTo(nextX * fieldSize + fieldSize / 2, y * fieldSize + fieldSize / 2);
-
-            // Draw vertical line
+          if (index === monsterPath.length - 1) {
+            // Connect to the bottom-center of the last square
             context.lineTo(nextX * fieldSize + fieldSize / 2, nextY * fieldSize + fieldSize / 2);
-
-            // If it's the last segment, connect back to the bottom-center of the last square
-            if (index === monsterPath.length - 1) {
-              context.lineTo(nextX * fieldSize + fieldSize / 2, nextY * fieldSize + fieldSize);
-            }
+            context.lineTo(nextX * fieldSize + fieldSize / 2, nextY * fieldSize + fieldSize);
           }
         });
+
         context.stroke();
       }
 
@@ -258,11 +272,20 @@ function App() {
         tower.draw(context, fieldSize);
       });
 
-      monsters.forEach((monster) => {
+      monsters.forEach((monster, monsterIndex) => {
         monster.update(100);
         monster.display(context, fieldSize);
-      });  
-
+    
+        // Check if the monster has reached the end of the path
+        if (monster.endPosition()) {
+          // Remove the monster from the array
+          setMonsters((prevMonsters) => prevMonsters.filter((_, index) => index !== monsterIndex));
+    
+          // Decrease lives
+          setLives((prevLives) => prevLives - 1);
+        }
+      });
+    
       shots.forEach((shot) => {
         shot.draw(context, fieldSize);
       });
@@ -376,6 +399,7 @@ function App() {
       <p>Selected Tower: {selectedTower}</p>
       <p>Next Wave Frame: {nextWaveFrame}</p>
       <p>Current Level: {currentLevel}</p>
+      <p>Lives: {lives}</p>
       <button onClick={startStopGame}>{gameStarted ? 'Stop Game' : 'Start Game'}</button>
 
       {gameStarted && (
