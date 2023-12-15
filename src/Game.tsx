@@ -197,13 +197,14 @@ const Game: React.FC = () => {
   // Call this function in createMonstersForLevel
   const createMonstersForLevel = (level: number) => {
     const numberOfMonsters = level * 2 + 5;
+    const monsterLevel = level * 0.5;
     const baseMonsterSpeed = 0.4;
     const delayRange = { min: 800, max: 1000 };
   
     const createMonsterWithDelay = (index: number, speed: number) => {
       setTimeout(() => {
         const pathCopy = [...generateMonsterPath];
-        const newMonster = new Monster(pathCopy, speed);
+        const newMonster = new Monster(pathCopy, speed, monsterLevel);
         setMonsters((prevMonsters) => [...prevMonsters, newMonster]);
       }, index * (Math.random() * (delayRange.max - delayRange.min) + delayRange.min));
     };
@@ -286,6 +287,8 @@ const Game: React.FC = () => {
               alert('Game Over! You lost.');
               setGameOver(true);
               setGameStarted(false);
+              // not the best, but i had probles to make the game restart manually
+              window.location.reload();
               return
           }
         }
@@ -318,7 +321,6 @@ const Game: React.FC = () => {
           });
       
           if (targetMonster) {
-            console.log("Shooting at target");
             const newShot = new Shot({ x: tower.x, y: tower.y }, tower.type, targetMonster);
             setShots((prevShots) => [...prevShots, newShot]);
             tower.cooldown = tower.maxCooldown;
@@ -353,7 +355,17 @@ const Game: React.FC = () => {
         const defeatedMonsters = prevMonsters.length - updatedMonsters.length;
         if (defeatedMonsters > 0) {
           // Grant gold as a reward for each defeated monster
-          setGold((prevGold) => prevGold + defeatedMonsters * 5);
+          setGold((prevGold) => {
+            const newGold = prevGold + defeatedMonsters * 5;
+      
+            // Check if the player has collected 200 coins to grant an extra life
+            if (newGold >= 200) {
+              setLives((prevLives) => prevLives + 1); // Grant an extra life
+              return newGold - 200; // Deduct 200 coins
+            }
+      
+            return newGold;
+          });
         }
       
         return updatedMonsters;

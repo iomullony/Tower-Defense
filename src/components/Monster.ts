@@ -3,17 +3,17 @@ import MonsterPath from './MonsterPath';
 class Monster {
   position: { x: number; y: number };
   displayPosition: { x: number; y: number };
-  lives: number;
+  lives = 3;
   path: MonsterPath[];
   speed: number;
   originalSpeed: number;
   frozen: boolean;
   freezeTime: number;
 
-  constructor(path: MonsterPath[], speed: number) {
+  constructor(path: MonsterPath[], speed: number, lives: number) {
     this.position = { ...path[0].position };
     this.displayPosition = { ...path[0].position };
-    this.lives = 3; // You can set the initial number of lives as needed
+    this.lives = 3 + lives; // You can set the initial number of lives as needed
     this.path = path;
     this.speed = speed;
     this.originalSpeed = speed;
@@ -94,8 +94,6 @@ class Monster {
   } 
 
   endPosition() {
-    // console.log('end?');
-    // console.log(this.position);
     return this.path[0].nextPosition === null;
   }
 }
