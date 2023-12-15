@@ -4,10 +4,12 @@ import { ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import Tower from './components/Tower';
 import Monster from './components/Monster';
 import MonsterPath from './components/MonsterPath';
+import Shot from './components/Shot';
 
 const fieldSize = 30; // Pixels for each field
 const waveFrame = 250;
-const towerCost = 20;
+const towerCost = 40;
+const threshold = 5;
 
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
@@ -20,10 +22,12 @@ function App() {
   const startTime = useRef<number>(0);
   const [initialNextWaveFrame, setInitialNextWaveFrame] = useState<number>(waveFrame);
   const [monsterPath, setMonsterPath] = useState<MonsterPath[] | null>(null);
+  const [shots, setShots] = useState<Shot[]>([]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const generateMonsterPath = React.useMemo(() =>  {
+    
     // Define your path data here
     const pathData = [
       { position: { x: 0, y: 0 }, nextPosition: { x: 1, y: 0 } },
@@ -256,15 +260,77 @@ function App() {
 
       monsters.forEach((monster) => {
         monster.update(100);
-      });
-
-      monsters.forEach((monster) => {
         monster.display(context, fieldSize);
+      });  
+
+      shots.forEach((shot) => {
+        shot.draw(context, fieldSize);
       });
 
-      const filteredMonsters = monsters.filter((monster) => monster.path.length > 0);
-      setMonsters((prevMonsters) => filteredMonsters);
-
+      towers.forEach((tower) => {
+        tower.draw(context, fieldSize);
+      
+        tower.updateCooldown();
+      
+        if (tower.cooldown === 0) {
+          let targetMonster = null;
+          let minDistance = Infinity;
+      
+          monsters.forEach((monster) => {
+            const distance = Math.sqrt(
+              Math.pow(tower.x - monster.position.x, 2) +
+              Math.pow(tower.y - monster.position.y, 2)
+            );
+      
+            // Check if the monster is within the range of the tower and closer than the current target
+            if (distance <= tower.range && distance < minDistance) {
+              targetMonster = monster;
+              minDistance = distance;
+            }
+          });
+      
+          if (targetMonster) {
+            console.log("Shooting at target");
+            const newShot = new Shot({ x: tower.x, y: tower.y }, tower.type, targetMonster);
+            setShots((prevShots) => [...prevShots, newShot]);
+            tower.cooldown = tower.maxCooldown;
+          }
+        }
+      });
+      
+      shots.forEach((shot, shotIndex) => {
+        const { x, y } = shot.position;
+        const { x: goalX, y: goalY } = shot.goal.position;
+        const distanceToGoal = Math.sqrt(Math.pow(x - goalX, 2) + Math.pow(y - goalY, 2));
+      
+        // Check if the shot reached the monster
+        if (distanceToGoal < threshold) {
+          if (shot.type === 'regular') {
+            shot.goal.hit(1);
+          } else if (shot.type === 'ice') {
+            shot.goal.hit(0.5);
+            shot.goal.freeze(2000, 0.1);
+          } else if (shot.type === 'fire') {
+            shot.goal.hit(2);
+          }
+      
+          setShots((prevShots) => prevShots.filter((_, index) => index !== shotIndex));
+        }
+      });
+      
+      // Remove defeated monsters and grant rewards
+      setMonsters((prevMonsters) => {
+        const updatedMonsters = prevMonsters.filter((monster) => monster.lives > 0);
+      
+        const defeatedMonsters = prevMonsters.length - updatedMonsters.length;
+        if (defeatedMonsters > 0) {
+          // Grant gold as a reward for each defeated monster
+          setGold((prevGold) => prevGold + defeatedMonsters * 5);
+        }
+      
+        return updatedMonsters;
+      });
+      
       if (gameStarted && nextWaveFrame > 0) {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime.current;
