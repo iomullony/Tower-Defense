@@ -10,7 +10,8 @@ const fieldSize = 30; // Pixels for each field
 const waveFrame = 250;
 const towerCost = 40;
 const threshold = 5;
-const upgradeCost = 150;
+const upgradeCost = 100;
+const lifeCost = 200;
 
 const Game: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -157,7 +158,7 @@ const Game: React.FC = () => {
 
     let selectedTowerCost = towerCost; // Default cost for regular and ice towers
 
-    if (selectedTower === "fire") selectedTowerCost = towerCost + 20;
+    if (selectedTower === "fire") selectedTowerCost = towerCost + 10;
   
     if (gold >= selectedTowerCost && selectedTower) {
       // Deduct gold
@@ -265,14 +266,14 @@ const Game: React.FC = () => {
           tower.damage += 1; // Upgrade damage by 1
           if (tower.type === 'ice') {
             tower.freezeDuration += 1000;
-            tower.freezeFactor -= 0.1;
+            tower.freezeFactor -= 0.2;
           }
           break;
         case 5:
           tower.damage += 2; // Upgrade damage by 1
           if (tower.type === 'ice') {
             tower.freezeDuration += 2000;
-            tower.freezeFactor -= 0.2;
+            tower.freezeFactor -= 0.3;
           }
           break;
         default:
@@ -430,7 +431,7 @@ const Game: React.FC = () => {
             const newGold = prevGold + 5;
       
             // Check if the player has collected 200 coins to grant an extra life
-            if (newGold >= 200) {
+            if (newGold >= lifeCost) {
               setLives((prevLives) => prevLives + 1); // Grant an extra life
               return newGold - 200; // Deduct 200 coins
             }
@@ -458,15 +459,17 @@ const Game: React.FC = () => {
         const currentTime = Date.now();
         const elapsedTime = currentTime - startTime.current;
         const secondsPassed = Math.floor(elapsedTime / 1000);
-
+  
         setNextWaveFrame((prevNextWaveFrame) => Math.max(0, initialNextWaveFrame - secondsPassed * 5));
       }
     }, 1000);
-
+  
     return () => {
       cancelAnimationFrame(animationFrameId);
-      clearInterval(intervalId);
-    };
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };  
   }, [gameStarted, nextWaveFrame, initialNextWaveFrame, monsters, towers, canvasRef, fieldSize, currentLevel, monsterPath]);
 
   useEffect(() => {

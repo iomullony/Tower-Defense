@@ -14,9 +14,9 @@ You can press Next Wave so the next wave will come earlier.
 
 Every level the monsters are faster and have more lives.
 
-If you put a tower where one already exists it will change the tower for the new one, take into account that even if you pout the same one you will lose money.
+If you put a tower where one already exists it will change the tower for the new one, take into account that even if you put the same one you will lose money.
 
-If a monster gets to the end of the path you will lose a life. If you lose all your lives you lose. But  a new game will start.
+If a monster gets to the end of the path you will lose a life. If you lose all your lives you lose. But a new game will start.
 
 You can update a tower cliking in the yellow button below each tower. Each one has four updates: 
 1. Makes the range bigger.
@@ -24,6 +24,6 @@ You can update a tower cliking in the yellow button below each tower. Each one h
 3. More damage and if its an ice tower pauses the mosters for longer.
 4. The same as 3 but more
 
-To update a tower you have to pay 150, if it is a fire tower 175.
-To create a tower you have to pay 40, if it is a fire tower 60.
+To update a tower you have to pay 100, if it is a fire tower 125.
+To create a tower you have to pay 40, if it is a fire tower 50.
 Fire towers are more expensive because they make more damage.
