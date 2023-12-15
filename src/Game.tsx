@@ -10,6 +10,7 @@ const fieldSize = 30; // Pixels for each field
 const waveFrame = 250;
 const towerCost = 40;
 const threshold = 5;
+const upgradeCost = 150;
 
 const Game: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -123,6 +124,27 @@ const Game: React.FC = () => {
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
   
+    // Check if the click is on the upgrade button of an existing tower
+    for (const tower of towers) {
+      const upgradeButtonRect = {
+        x: tower.x * fieldSize + fieldSize / 2 - 10,
+        y: tower.y * fieldSize + fieldSize / 2 + 20,
+        width: 20,
+        height: 10,
+      };
+  
+      if (
+        mouseX >= upgradeButtonRect.x &&
+        mouseX <= upgradeButtonRect.x + upgradeButtonRect.width &&
+        mouseY >= upgradeButtonRect.y &&
+        mouseY <= upgradeButtonRect.y + upgradeButtonRect.height
+      ) {
+        // Upgrade the tower and return, preventing new tower placement
+        handleTowerUpgrade(tower);
+        return;
+      }
+    }
+  
     // Calculate the grid position based on field size
     const gridX = Math.floor(mouseX / fieldSize);
     const gridY = Math.floor(mouseY / fieldSize);
@@ -139,9 +161,7 @@ const Game: React.FC = () => {
       setGold((prevGold) => prevGold - towerCost);
   
       // Check if there's already a tower at the clicked grid position
-      const existingTowerIndex = towers.findIndex(
-        (tower) => tower.x === gridX && tower.y === gridY
-      );
+      const existingTowerIndex = towers.findIndex((tower) => tower.x === gridX && tower.y === gridY);
   
       if (existingTowerIndex !== -1) {
         // Replace the existing tower
@@ -212,6 +232,36 @@ const Game: React.FC = () => {
     for (let i = 1; i <= numberOfMonsters; i++) {
       const monsterSpeed = baseMonsterSpeed + level * 0.01;
       createMonsterWithDelay(i, monsterSpeed);
+    }
+  };
+
+  const handleTowerUpgrade = (tower: Tower) => {
+    // Define the minimum level required for upgrades
+    const upgradeLevelRequirement = 1; // Adjust as needed
+  
+    // Check if the current level is greater than or equal to the upgrade level requirement
+    if (currentLevel >= upgradeLevelRequirement && gold >= upgradeCost && tower.upgradeLevel < 3) {
+      setGold((prevGold) => prevGold - upgradeCost);
+  
+      // Increase upgrade level
+      tower.upgradeLevel += 1;
+  
+      // Upgrade properties based on the upgrade level
+      switch (tower.upgradeLevel) {
+        case 2:
+          tower.range = 3; // Upgrade range to 3
+          break;
+        case 3:
+          tower.maxCooldown = 30; // Upgrade shooting speed to 30
+          break;
+        default:
+          break;
+      }
+  
+      // Update the towers array with the upgraded tower
+      setTowers((prevTowers) => [...prevTowers]);
+    } else {
+      alert('Not enough gold, maximum upgrade level reached, or level requirement not met!');
     }
   };
   
