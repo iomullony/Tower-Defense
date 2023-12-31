@@ -6,6 +6,8 @@ Notes: In tsconfig.json you might need to add "types": ["node"] to be able to us
 
 ## Game Initialization
 
+To start the game run `npm install` and then `npm run dev`.
+
 You start with 100 coins and 5 lives.
 
 ## Things to take into Account
