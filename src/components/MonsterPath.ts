@@ -1,5 +1,3 @@
-// 38553864
-
 interface MonsterPath {
   position: { x: number; y: number };
   nextPosition: { x: number; y: number } | null;

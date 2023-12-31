@@ -1,5 +1,3 @@
-// 38553864
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 

@@ -1,5 +1,3 @@
-// 38553864
-
 import React from 'react';
 import Game from './Game';
 
