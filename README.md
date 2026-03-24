@@ -8,7 +8,7 @@ To start the game run `npm install` and then `npm run dev`.
 
 You start with 100 coins and 5 lives.
 
-Notes: In tsconfig.json you might need to add "types": ["node"] to be able to use NodeJS.
+Notes: In tsconfig.json you might need to add "types": ["node"] to be able to use NodeJS. The latest version of node is being used (20.19.0).
 
 ## Things to take into Account
 
